@@ -1,0 +1,6 @@
+---
+
+infos_ansible:
+ ansible_host: "{{ ansible_hostname }}"
+ ansible_user: "{{ lxc_user }}"
+ ansible_password: "{{ lxc_pass }}"

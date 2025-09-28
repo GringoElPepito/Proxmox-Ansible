@@ -1,0 +1,6 @@
+---
+# handlers file for roles/vm_disableipv6_
+- name: run update-grub to disable IPV6
+  ansible.builtin.shell: update-grub2
+  become: yes
+  delegate_to: "{{ IP_PO }}"

@@ -1,0 +1,18 @@
+---
+# tasks file for get-downloadable-templates
+- name: Get Downloadable Templates
+  uri:
+    url: '{{ proxmox_url }}/api2/json/nodes/DESIGUAL/aplinfo'
+    method: 'GET'
+    headers:
+      Authorization: 'PVEAPIToken={{ proxmox_user }}!{{ proxmox_token_id }}={{ proxmox_token_secret }}'
+    validate_certs: false
+  register: result_downloadable_templates
+
+- name: Display Downloadable Templates
+  debug:
+    msg: '{{ template.template }} - {{ template.os }}'
+  loop: '{{ result_downloadable_templates.json.data }}'
+  loop_control:
+    label: '{{ template.template }}'
+    loop_var: template 

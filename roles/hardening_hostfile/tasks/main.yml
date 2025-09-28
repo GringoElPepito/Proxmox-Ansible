@@ -1,0 +1,9 @@
+---
+# Ajout du host dans /etc/hosts
+- name: Set host in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^{{ IP_PO }}'
+    line: '{{ IP_PO }} {{ VM_hostname }} {{ VM_hostname }}.{{ domain }}'
+  become: yes
+  delegate_to: "{{ IP_PO }}"

@@ -1,0 +1,35 @@
+---
+# Disable IPV6
+#- name: Recuperation du grub
+#  shell: "cat /etc/default/grub | grep GRUB_CMDLINE_LINUX"
+#  delegate_to: "{{ IP_M2M }}"
+#  register: result_grub
+- name: add argument to the GRUB CMDLINE for RedHat
+  lineinfile:
+    path: "/etc/default/grub"
+    regex: '^(GRUB_CMDLINE_LINUX="[^"]*(?<! ipv6.disable=1))"$'
+    line: '\1 ipv6.disable=1"'
+    backrefs: yes
+  notify: run update-grub to disable IPV6
+  delegate_to: "{{ IP_PO }}"
+  become: yes
+
+
+# Update grub if needed
+- name: Run notify if needed
+  meta: flush_handlers
+
+#- name: Disable IPV6 in grub
+#  ansible.builtin.lineinfile:
+#    path: /etc/default/grub
+#    regex: "^GRUB_CMDLINE_LINUX"
+#    line: "{{ result_grub.stdout | replace('usr\"', 'usr') + ' ipv6.disable=1\"' }}"
+#  become: yes
+#  delegate_to: "{{ IP_M2M }}"
+#  register: result_grub2
+#  when: ("ipv6.disable" not in result_grub.stdout)
+
+#- name: Sleep for 10 seconds and continue with play
+#  ansible.builtin.wait_for:
+#    timeout: 10
+#  delegate_to: localhost

@@ -1,0 +1,68 @@
+---
+# tasks file for roles/lin_chrony
+- name: Remove ntp and ntpsec for Ubuntu
+  delegate_to: "{{ IP_PO }}"
+  apt: 
+    name: '{{ item }}'
+    state: absent
+  become: true
+  loop:
+    - ntp
+    - ntpsec
+  when: ansible_os_family == "Debian"
+  
+
+- name: Remove ntp and ntpsec for RedHat
+  delegate_to: "{{ IP_PO }}"
+  yum: 
+    name: '{{ item }}'
+    state: absent
+  become: true
+  loop:
+    - ntp
+    - ntpsec
+  when: ansible_os_family == "RedHat"
+  
+
+- name: Install the package chrony for Ubuntu
+  delegate_to: "{{ IP_PO }}"
+  apt: 
+    name: chrony
+    state: present
+  become: true
+  when: ansible_os_family == "Debian"
+  
+
+- name: Install the package chrony for RedHat
+  delegate_to: "{{ IP_PO }}"
+  yum: 
+    name: chrony
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
+  
+
+- name: Create folder chrony if it does not exist
+  delegate_to: "{{ IP_PO }}"
+  file:
+    path: /etc/chrony
+    state: directory
+    mode: "0755"
+  become: true
+  
+
+- name: Remove file conf of chrony if it exist
+  delegate_to: "{{ IP_PO }}"
+  file:
+    path: /etc/chrony/chrony.conf
+    state: absent
+  become: true
+  
+
+- name: Copy the template for chrony conf
+  delegate_to: "{{ IP_PO }}"
+  template: 
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+  become: true
+

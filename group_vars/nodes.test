@@ -1,0 +1,6 @@
+nodes:
+ hosts:
+ vars:
+  ansible_user: 'ansible'
+  ansible_become: true
+  ansible_become_pass: 'XCe)WA1\*-(PPjb@LkiY\;qa]M1KOZ-o'

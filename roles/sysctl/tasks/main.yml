@@ -1,0 +1,15 @@
+---
+# tasks file for roles/sysctl
+- name: Copy sysctl.conf (ANSSI)
+  copy:
+    src: sysctl.conf
+    dest: "/etc/sysctl.conf"
+  become: yes
+  delegate_to: "{{ IP_PO }}"
+  register: result_sysctl
+
+- name: apply sysctl change if the sysctl.conf is changed 
+  shell: sysctl -p 
+  become: yes
+  when: result_sysctl.changed == true
+  delegate_to: "{{ IP_PO }}"

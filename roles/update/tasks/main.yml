@@ -1,0 +1,11 @@
+---
+# tasks file for roles/vm_update
+# Mise a jour des packages RedHat
+- name: Upgrade all packages RedHat
+  apt:
+    name: "*"
+    state: latest
+    update_cache: true
+  become: yes
+  delegate_to: "{{ IP_PO }}"
+  when: ansible_os_family == 'Debian'

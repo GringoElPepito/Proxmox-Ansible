@@ -1,0 +1,28 @@
+---
+# tasks file for roles/proxmox_init_ct
+#- name: Debug
+#  package:
+#   name: ssh
+#   state: 'present'
+#  become: true
+
+- name: Try Ping Proxmox node
+  ping:
+
+- name: Install SSHd on LXC
+  become: true
+  #become_password: '{{ proxmox_pass }}'
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- bash -c '/bin/dnf in -y openssh-server'"
+
+- name: Allow root to connect in SSH
+  become: true
+  #become_password: '{{ proxmox_pass }}'
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- bash -c \"sed -e '/^#PermitRootLogin prohibit-password/cPermitRootLogin yes' /etc/ssh/sshd_config\""
+
+- name: Restart SShd
+  become: true
+  #become_password: '{{ proxmox_pass }}'
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- bash -c 'systemctl restart sshd'"

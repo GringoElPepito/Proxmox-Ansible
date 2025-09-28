@@ -1,0 +1,9 @@
+---
+# tasks file for roles/vm_setattr
+- name: set attr +a for {{ item }}
+  shell: 'chattr +a {{ item }}'
+  loop:
+#    - /etc/skel/.bash_history
+    - /root/.bash_history
+  delegate_to: '{{ IP_PO }}'
+  become: true

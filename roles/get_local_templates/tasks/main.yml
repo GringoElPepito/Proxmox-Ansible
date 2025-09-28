@@ -1,0 +1,4 @@
+---
+# tasks file for get-local-templates
+- name: Get Local templates
+  community.proxmox.

@@ -1,0 +1,10 @@
+---
+# tasks file for roles/install_packages
+- name: Install package
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop: "{{ package_list }}"
+  become: yes
+  delegate_to: "{{ IP_PO }}"

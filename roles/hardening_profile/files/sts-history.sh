@@ -1,0 +1,1 @@
+readonly HISTFILESIZE=5000 HISTSIZE=5000 HISTCONTROL=ignoredups 2>/dev/null

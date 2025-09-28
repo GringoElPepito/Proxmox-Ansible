@@ -1,0 +1,14 @@
+---
+# tasks file for roles/vm_password_expire
+- name: Configure expire password for user
+  lineinfile:
+    path: /etc/login.defs
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+  loop:
+    - { line: 'PASS_MAX_DAYS	365', regexp: '^PASS_MAX_DAYS' }
+    - { line: 'PASS_WARN_AGE	30', regexp: '^PASS_WARN_AGE' }
+    - { line: 'PASS_MIN_DAYS	1', regexp: '^PASS_MIN_DAYS' }
+  become: true
+  delegate_to: "{{ IP_PO }}"
+    

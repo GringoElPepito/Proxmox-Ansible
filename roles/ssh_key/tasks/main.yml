@@ -1,0 +1,11 @@
+---
+# tasks file for roles/vm_sshkey
+- name: Insert sshkey into authorized key
+  lineinfile:
+    path: /root/.ssh/authorized_keys
+    line: "{{ item }}"
+    state: present
+  loop: '{{ sshkey_list }}'
+  delegate_to: '{{ IP_PO }}'
+  become: true
+  when: sshkey_list is defined

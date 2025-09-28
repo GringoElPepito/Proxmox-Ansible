@@ -1,0 +1,47 @@
+---
+# tasks file for roles/create_lxc
+#- name: Display mounts
+#  debug:
+#   msg: '{{ base_mounts.mp0 }}'
+
+- name: Create LXC Container
+  community.proxmox.proxmox:
+    node: '{{ proxmox_node }}'
+    api_host: '{{ proxmox_host }}'
+    api_port: '{{ proxmox_port }}'
+    api_user: '{{ proxmox_user }}'
+    api_token_id: '{{ proxmox_token_id }}'
+    api_token_secret: '{{ proxmox_token_secret }}'
+    cores: '{{ base_cores }}'
+    cpus: '{{ base_cpus }}'
+    cpuunits: '{{ base_cpuunits }}'
+    disk_volume: '{{ base_root_volume }}'
+    features: '{{ base_features }}'
+    hostname: '{{ base_hostname }}'
+    memory: '{{ base_memory }}'
+    #mount_volumes: '{{ base_mount_volumes }}'
+    mounts: '{{ base_mounts }}'
+    netif: '{{ base_netif }}'
+    ostemplate: '{{ base_image }}'
+    password: '{{ root_pass }}'
+    pubkey: '{{ base_pubkey }}'
+    state: 'present'
+    swap: '{{ base_swap }}'
+    unprivileged: '{{ base_unprivileged }}'
+    validate_certs: false
+    vmid: '{{ base_vmid }}'
+    
+- name: Start LXC Container
+  community.proxmox.proxmox: 
+    node: '{{ proxmox_node }}'
+    api_host: '{{ proxmox_host }}'
+    api_port: '{{ proxmox_port }}'
+    api_user: '{{ proxmox_user }}'
+    api_token_id: '{{ proxmox_token_id }}'
+    api_token_secret: '{{ proxmox_token_secret }}'
+    vmid: '{{ base_vmid }}'
+    state: 'started'
+
+#- name: Add LXC Container to hosts
+#  add_host:
+#   name: '{{ base_ip_address }}'
