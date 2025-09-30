@@ -3,7 +3,6 @@
 - name: Set host in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: '^{{ IP_PO }}'
-    line: '{{ IP_PO }} {{ VM_hostname }} {{ VM_hostname }}.{{ domain }}'
-  become: yes
-  delegate_to: "{{ IP_PO }}"
+    regexp: '^{{ base_ip }}'
+    line: '{{ base_ip }} {{ VM_hostname }} {{ VM_hostname }}.{{ domain }}'
+  become: true

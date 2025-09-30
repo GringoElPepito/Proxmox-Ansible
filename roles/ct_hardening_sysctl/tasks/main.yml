@@ -1,0 +1,12 @@
+---
+# tasks file for roles/sysctl
+- name: Copy sysctl.conf (ANSSI)
+  copy:
+    src: sysctl.conf
+    dest: "/etc/sysctl.conf"
+  become: true
+  notify: Restart sysctl
+  register: result_sysctl
+
+- name: Run notify if needed
+  meta: flush_handlers

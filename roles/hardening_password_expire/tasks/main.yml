@@ -10,5 +10,4 @@
     - { line: 'PASS_WARN_AGE	30', regexp: '^PASS_WARN_AGE' }
     - { line: 'PASS_MIN_DAYS	1', regexp: '^PASS_MIN_DAYS' }
   become: true
-  delegate_to: "{{ IP_PO }}"
     

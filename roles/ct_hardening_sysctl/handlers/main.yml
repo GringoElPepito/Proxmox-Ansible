@@ -1,0 +1,5 @@
+---
+# handlers file for roles/vm_nftables
+- name: Restart sysctl
+  shell: 'sysctl -p'
+  become: true

@@ -5,5 +5,4 @@
   loop:
 #    - /etc/skel/.bash_history
     - /root/.bash_history
-  delegate_to: '{{ IP_PO }}'
   become: true

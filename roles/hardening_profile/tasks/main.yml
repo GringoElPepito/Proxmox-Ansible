@@ -7,8 +7,7 @@
   loop:
     - /etc/profile.d/nms-prompt.sh
     - /etc/profile.d/nms-tmout.sh
-  become: yes
-  delegate_to: "{{ IP_PO }}"
+  become: true
 
 - name: copy profile file into profile.d
   copy:
@@ -18,9 +17,8 @@
   loop:
     - sts-colorprompt.sh
     - sts-history.sh
-    - sts-timemout.sh
-  become: yes
-  delegate_to: "{{ IP_PO }}"
+    - sts-timeout.sh
+  become: true
 
 # Add files into root bashrc
 - name: Add files into root bashrc to run it for new session
@@ -32,5 +30,4 @@
     - '. /etc/profile.d/sts-colorprompt.sh'
     - '. /etc/profile.d/sts-history.sh'
     - '. /etc/profile.d/sts-timemout.sh'
-  become: yes
-  delegate_to: "{{ IP_PO }}"
+  become: true

@@ -1,0 +1,40 @@
+---
+# tasks file for setup-deploy
+
+- name: Create .ssh directory
+  file:
+    path: /home/desigual/.ssh
+    state: directory
+    mode: '0700'
+    owner: desigual
+    group: desigual
+  become: true
+
+- name: Create authorized_keys file
+  file:
+    path: /home/desigual/.ssh/authorized_keys
+    state: touch
+    owner: desigual
+    group: desigual
+    mode: '0600'
+  become: true
+
+- name: Insert sshkey into authorized key
+  lineinfile:
+    path: /home/desigual/.ssh/authorized_keys
+    line: "{{ sshkey }}"
+    state: present
+  loop: '{{ sshkey_list }}'
+  loop_control:
+    loop_var: sshkey
+  become: true
+  when: sshkey_list is defined
+
+- name: Copy SSH Configuration File
+  copy:
+   src: hardening.conf
+   dest: /etc/ssh/sshd_config.d/
+   owner: root
+   group: root
+   mode: 0644
+  become: true

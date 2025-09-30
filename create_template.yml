@@ -1,0 +1,49 @@
+---
+# Commande de lancement du playbook
+# ansible-playbook create_template.yml --vault-password-file global_vars/pass --become-pass-file global_vars/become_pass
+- hosts: localhost
+  gather_facts: false
+  vars_files:
+    - global_vars/common.yml
+  
+  tasks:
+    - name: Start roles with loop
+      include_role:
+        name: '{{ role.role }}'
+      loop_control:
+        loop_var: role
+      loop:
+        - { role: create_ct, tags: create_ct }
+        #- { role: add_host_ct, tags: add_host_ct }        
+        - { role: proxmox_init_ct, tags: proxmox_init_ct }
+
+- hosts: lxc 
+  gather_facts: false
+  vars_files:
+   - global_vars/common.yml
+
+  tasks:
+    - name: Start roles with loop
+      include_role:
+        name: '{{ role.role }}'
+      loop_control:
+        loop_var: role
+      loop:
+        - { role: hardening_ssh, tags: hardening_ssh }
+        - { role: hardening_profile, tags: hardening_profile }
+        - { role: hardening_umask, tags: hardening_umask }
+        - { role: ct_hardening_sysctl, tags: ct_hardening_sysctl }
+        - { role: hardening_password_expire, tags: hardening_password_expire }
+        #- { role: hardening_disableipv6, tags: hardening_disableipv6 }
+        #- { role: hardening_setattr, tags: hardening_setattr }
+        #- { role: hardening_iptables, tags: hardening_iptables }
+        #- { role: hardening_hostfile, tags: hardening_hostfile }
+
+- hosts: localhost
+  gather_facts: false
+  vars_files:
+    - global_vars/common.yml
+
+  roles:
+   - ct_templating
+

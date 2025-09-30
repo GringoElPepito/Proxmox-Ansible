@@ -3,4 +3,3 @@
 - name: restore iptables rules
   shell: 'iptables-restore < /etc/iptables/rules.v4'
   become: true
-  delegate_to: '{{ IP_PO }}'

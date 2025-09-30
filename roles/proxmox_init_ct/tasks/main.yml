@@ -1,28 +1,36 @@
----
-# tasks file for roles/proxmox_init_ct
-#- name: Debug
-#  package:
-#   name: ssh
-#   state: 'present'
-#  become: true
-
-- name: Try Ping Proxmox node
-  ping:
-
-- name: Install SSHd on LXC
+- name: Install SSHd and sudo on LXC
   become: true
   #become_password: '{{ proxmox_pass }}'
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c '/bin/dnf in -y openssh-server'"
+  shell: "pct exec {{ base_vmid }} -- bash -c 'dnf in -y openssh-server sudo && systemctl enable --now sshd'"
+  when: base_image | regex_search("rocky") or base_image | regex_search("alma") or base_image | regex_search("centos")
 
-- name: Allow root to connect in SSH
+- name: Register /etc/group
   become: true
-  #become_password: '{{ proxmox_pass }}'
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c \"sed -e '/^#PermitRootLogin prohibit-password/cPermitRootLogin yes' /etc/ssh/sshd_config\""
+  shell: "pct exec {{ base_vmid }} -- bash -c 'cat /etc/group'"
+  register: group_content
 
-- name: Restart SShd
+- name: Create sshusers group
   become: true
-  #become_password: '{{ proxmox_pass }}'
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c 'systemctl restart sshd'"
+  shell: "pct exec {{ base_vmid }} -- bash -c 'groupadd sshusers'"
+  when: '"sshusers" not in group_content.stdout'
+
+- name: Register /etc/passwd
+  become: true
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- bash -c 'cat /etc/passwd'"
+  register: passwd_content
+
+- name: Create user desigual
+  become: true
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- bash -c 'useradd -m -s /bin/bash -G sshusers,wheel -p $(openssl passwd -1 {{ base_pass }}) {{ base_user }}'"
+  when: '"desigual" not in passwd_content.stdout'
+
+- name: Regen LXC SSH
+  known_hosts:
+    name: "{{ base_ip }}"
+    state: "absent"
+  delegate_to: "localhost"

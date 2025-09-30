@@ -1,0 +1,10 @@
+---
+# Commande de lancement du playbook
+# ansible-playbook test.yml --vault-password-file global_vars/pass --become-pass-file global_vars/become_pass
+- hosts: localhost
+  gather_facts: false
+  vars_files:
+    - global_vars/common.yml
+
+  roles:
+   - ct_templating

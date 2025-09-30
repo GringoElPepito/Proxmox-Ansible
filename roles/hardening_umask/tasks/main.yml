@@ -5,8 +5,7 @@
     line: "UMASK           0027"
     regexp: "^UMASK"
     path: /etc/login.defs
-  become: yes
-  delegate_to: "{{ IP_PO }}"
+  become: true
 
 - name: Change umask to 0027 on {{ item }} 
   lineinfile:
@@ -16,5 +15,4 @@
   loop:
     - { line: '    umask 027', path: '/etc/profile' }
 #    - { line: '       umask 027', path: '/etc/bashrc' }
-  become: yes
-  delegate_to: "{{ IP_PO }}"
+  become: true

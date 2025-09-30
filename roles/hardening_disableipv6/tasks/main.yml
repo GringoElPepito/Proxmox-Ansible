@@ -11,8 +11,7 @@
     line: '\1 ipv6.disable=1"'
     backrefs: yes
   notify: run update-grub to disable IPV6
-  delegate_to: "{{ IP_PO }}"
-  become: yes
+  become: true
 
 
 # Update grub if needed

@@ -1,0 +1,64 @@
+---
+# tasks file for roles/ct_templating
+- name: Get Guests Proxmox List
+  community.proxmox.proxmox_vm_info:
+    node: '{{ proxmox_node }}'
+    api_host: '{{ proxmox_host }}'
+    api_port: '{{ proxmox_port }}'
+    api_user: '{{ proxmox_user }}'
+    api_token_id: '{{ proxmox_token_id }}'
+    api_token_secret: '{{ proxmox_token_secret }}'
+  register: proxmox_guests
+
+- name: Set fact New VMID
+  set_fact:
+    new_vmid: "{{ proxmox_guests.proxmox_vms | map(attribute='vmid') | max | int + 1 }}"
+
+- name: Stop LXC Container
+  community.proxmox.proxmox: 
+    node: '{{ proxmox_node }}'
+    api_host: '{{ proxmox_host }}'
+    api_port: '{{ proxmox_port }}'
+    api_user: '{{ proxmox_user }}'
+    api_token_id: '{{ proxmox_token_id }}'
+    api_token_secret: '{{ proxmox_token_secret }}'
+    vmid: '{{ base_vmid }}'
+    state: 'stopped'
+
+- name: Clone LXC to another LXC
+  community.proxmox.proxmox:
+    node: '{{ proxmox_node }}'
+    api_host: '{{ proxmox_host }}'
+    api_port: '{{ proxmox_port }}'
+    api_user: '{{ proxmox_user }}'
+    api_token_id: '{{ proxmox_token_id }}'
+    api_token_secret: '{{ proxmox_token_secret }}'
+    clone: '{{ base_vmid }}'
+    vmid: '{{ new_vmid }}'
+    hostname: 'rocky-template'
+    clone_type: 'full'
+    storage: '{{ base_storage }}'
+    state: 'present'
+
+- name: Convert LXC to template
+  community.proxmox.proxmox:
+    node: '{{ proxmox_node }}'
+    api_host: '{{ proxmox_host }}'
+    api_port: '{{ proxmox_port }}'
+    api_user: '{{ proxmox_user }}'
+    api_token_id: '{{ proxmox_token_id }}'
+    api_token_secret: '{{ proxmox_token_secret }}'
+    vmid: '{{ new_vmid }}'
+    state: 'template'
+
+- name: Delete original LXC Container
+  community.proxmox.proxmox:
+    node: '{{ proxmox_node }}'
+    api_host: '{{ proxmox_host }}'
+    api_port: '{{ proxmox_port }}'
+    api_user: '{{ proxmox_user }}'
+    api_token_id: '{{ proxmox_token_id }}'
+    api_token_secret: '{{ proxmox_token_secret }}'
+    vmid: '{{ base_vmid }}'
+    state: 'absent'
+    purge: true
