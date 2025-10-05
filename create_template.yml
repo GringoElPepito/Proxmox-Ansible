@@ -1,6 +1,6 @@
 ---
 # Commande de lancement du playbook
-# ansible-playbook create_template.yml --vault-password-file global_vars/pass --become-pass-file global_vars/become_pass
+# ansible-playbook create_template.yml --vault-password-file global_vars/pass --become-pass-file global_vars/become_pass -e "image=rocky"
 - hosts: localhost
   gather_facts: false
   vars_files:
