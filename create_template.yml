@@ -14,6 +14,7 @@
         loop_var: role
       loop:
         - { role: select_ct_image, tags: select_ct_image }
+        - { role: basevmid_template, tags: basevmid_template }
         - { role: create_ct, tags: create_ct }
         #- { role: add_host_ct, tags: add_host_ct }        
         - { role: proxmox_init_ct, tags: proxmox_init_ct }
