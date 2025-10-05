@@ -1,0 +1,76 @@
+---
+# tasks file for roles/select_ct_image
+- name: Get Local LXC Images
+  uri:
+    url: '{{ proxmox_url }}/api2/json/nodes/DESIGUAL/storage/local/content?content=vztmpl'
+    method: 'GET'
+    headers:
+      Authorization: 'PVEAPIToken={{ proxmox_user }}!{{ proxmox_token_id }}={{ proxmox_token_secret }}'
+    validate_certs: false
+  register: local_images
+
+- name: Set fact wanted Images
+  set_fact:
+    wanted_images: "{{ local_images.json.data | selectattr('volid', 'search', image) | list }}"
+
+- name: Set fact base_image
+  set_fact:
+    base_image: "{{ wanted_images | sort(attribute='ctime', reverse=true) | first }}"
+  when: wanted_images | length > 0
+
+- name: Get Downloadable Templates
+  uri:
+    url: '{{ proxmox_url }}/api2/json/nodes/DESIGUAL/aplinfo'
+    method: 'GET'
+    headers:
+      Authorization: 'PVEAPIToken={{ proxmox_user }}!{{ proxmox_token_id }}={{ proxmox_token_secret }}'
+    validate_certs: false
+  register: result_downloadable_templates
+  when: base_image is not defined or base_image == ''
+
+- name: Set fact downloadable_images
+  set_fact:
+    downloadable_images: "{{ result_downloadable_templates.json.data | selectattr('template', 'search', image) | rejectattr('template', 'search', 'turnkey') | list }}"
+  when: base_image is not defined or base_image == ''
+
+- name: Set fact base_image
+  set_fact:
+    base_image: "{{ downloadable_images | sort(attribute='version', reverse=true) | first }}"
+  when: base_image is not defined or base_image == ''
+
+- name: Download Image
+  uri:
+    url: '{{ proxmox_url }}/api2/json/nodes/DESIGUAL/aplinfo'
+    method: 'POST'
+    headers:
+      Authorization: 'PVEAPIToken={{ proxmox_user }}!{{ proxmox_token_id }}={{ proxmox_token_secret }}'
+    validate_certs: false
+    body:
+      template: '{{ base_image.template }}'
+      storage: 'local'
+      node: '{{ proxmox_node }}'
+    body_format: json
+  when: downloadable_images is defined and downloadable_images | length > 0
+
+- name: Wait for the template to be downloaded
+  uri:
+    url: '{{ proxmox_url }}/api2/json/nodes/DESIGUAL/storage/local/content?content=vztmpl'
+    method: 'GET'
+    headers:
+      Authorization: 'PVEAPIToken={{ proxmox_user }}!{{ proxmox_token_id }}={{ proxmox_token_secret }}'
+    validate_certs: false
+  register: local_images_check
+  until: local_images_check.json.data | selectattr('volid', 'search', base_image.template) | list | length > 0
+  retries: 10
+  delay: 10
+  when: downloadable_images is defined and downloadable_images | length > 0
+
+- name: Set fact base_image
+  set_fact:
+    base_image: "{{ proxmox_vz_storage }}/{{ base_image.template }}"
+  when: downloadable_images is defined and downloadable_images | length > 0
+
+- name: Set fact base_image
+  set_fact:
+    base_image: "{{ base_image.volid }}"
+  when: wanted_images | length > 0

@@ -40,6 +40,7 @@
     api_token_id: '{{ proxmox_token_id }}'
     api_token_secret: '{{ proxmox_token_secret }}'
     vmid: '{{ base_vmid }}'
+    hostname: '{{ base_hostname }}'
     state: 'started'
 
 #- name: Add LXC Container to hosts

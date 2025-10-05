@@ -1,33 +1,82 @@
-- name: Install SSHd and sudo on LXC
+- name: Install SSHd and sudo for RedHat based LXC
   become: true
   #become_password: '{{ proxmox_pass }}'
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c 'dnf in -y openssh-server sudo && systemctl enable --now sshd'"
-  when: base_image | regex_search("rocky") or base_image | regex_search("alma") or base_image | regex_search("centos")
+  shell: "pct exec {{ base_vmid }} -- sh -c 'dnf in -y openssh-server sudo && systemctl enable --now sshd'"
+  when: base_image | regex_search("rocky") or base_image | regex_search("alma") or base_image | regex_search("centos") or base_image | regex_search("fedora") or base_image | regex_search("rhel")
+
+#- name: Set Fact apt_cache_dir
+#  set_fact:
+#   apt_cache_dir: 
+
+- name: Install SSHd and sudo for Debian based LXC
+  become: true
+  #become_password: '{{ proxmox_pass }}'
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- bash -c '[ -d /run/cache ] || mkdir -p /run/cache && echo \"Dir::Cache::Archives `/run/cache`;\" >> /etc/apt/apt.conf.d/99custom && [ -d /run/dpkg ] || mkdir -p /run/dpkg && cp -r --preserve /var/lib/dpkg/* /run/dpkg && echo \"admindir=/run/dpkg\" >> /etc/dpkg/dpkg.cfg && echo \"Dir::State::status `/run/dpkg/status`;\" >> /etc/apt/apt.conf.d/99custom && [ -d /run/tmp ] || mkdir /run/tmp && echo \"APT::ExtractTemplates::TempDir `/run/tmp`;\" >> /etc/apt/apt.conf.d/99custom && apt update && apt full-upgrade -y && apt install -y openssh-server sudo && systemctl enable --now ssh'"
+  when: base_image | regex_search("debian") or base_image | regex_search("ubuntu")
+
+- name: Install SSHd and sudo for Alpine based LXC
+  become: true
+  #become_password: '{{ proxmox_pass }}'
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- sh -c 'apk update && apk upgrade && apk add openssh sudo openssl && rc-update add sshd && service sshd start'"
+  when: base_image | regex_search("alpine")
+
+- name: Install SSHd and sudo for Arch based LXC
+  become: true
+  #become_password: '{{ proxmox_pass }}'
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- sh -c 'pacman-key --init && pacman-key --populate archlinux && pacman -Syu --noconfirm && pacman -S --noconfirm openssh sudo && systemctl enable --now sshd'"
+  when: base_image | regex_search("arch")
 
 - name: Register /etc/group
   become: true
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c 'cat /etc/group'"
+  shell: "pct exec {{ base_vmid }} -- sh -c 'cat /etc/group'"
   register: group_content
 
-- name: Create sshusers group
+- name: Create sshusers group for non Alpine LXC
   become: true
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c 'groupadd sshusers'"
-  when: '"sshusers" not in group_content.stdout'
+  shell: "pct exec {{ base_vmid }} -- sh -c 'groupadd sshusers'"
+  when: '"sshusers" not in group_content.stdout and "alpine" not in base_image'
+
+- name: Create sshusers group for Alpine LXC
+  become: true
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- sh -c 'addgroup sshusers'"
+  when: '"sshusers" not in group_content.stdout and "alpine" in base_image'
 
 - name: Register /etc/passwd
   become: true
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c 'cat /etc/passwd'"
+  shell: "pct exec {{ base_vmid }} -- sh -c 'cat /etc/passwd'"
   register: passwd_content
 
-- name: Create user desigual
+- name: Create user desigual for RedHat or Arch LXC
   become: true
   delegate_to: '{{ proxmox_host }}'
-  shell: "pct exec {{ base_vmid }} -- bash -c 'useradd -m -s /bin/bash -G sshusers,wheel -p $(openssl passwd -1 {{ base_pass }}) {{ base_user }}'"
-  when: '"desigual" not in passwd_content.stdout'
+  shell: "pct exec {{ base_vmid }} -- bash -c 'useradd -m -s /bin/sh -G sshusers,wheel {{ base_user }}'"
+  when: 'base_user | string not in passwd_content.stdout and (base_image | regex_search("rocky") or base_image | regex_search("alma") or base_image | regex_search("centos") or base_image | regex_search("fedora") or base_image | regex_search("rhel") or base_image | regex_search("arch"))'
+
+- name: Create user desigual for Debian LXC
+  become: true
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- bash -c 'useradd -m -s /bin/sh -G sshusers,sudo {{ base_user }}'"
+  when: 'base_user | string not in passwd_content.stdout and (base_image | regex_search("debian") or base_image | regex_search("ubuntu"))'
+
+- name: Create user desigual for Alpine LXC
+  become: true
+  delegate_to: '{{ proxmox_host }}'
+  shell: "pct exec {{ base_vmid }} -- sh -c 'adduser -s /bin/sh -G sshusers -G wheel -D {{ base_user }} && echo \"{{ base_user }}:{{ base_pass }}\" | chpasswd'"
+  when: 'base_user | string not in passwd_content.stdout and "alpine" in base_image'
+
+# - name: Set user desigual password for Alpine LXC
+#   become: true
+#   delegate_to: '{{ proxmox_host }}'
+#   shell: "pct exec {{ base_vmid }} -- sh -c 'echo \"{{ base_user }}:{{ base_pass }}\" | chpasswd'"
+#   when: 'base_user | string in passwd_content.stdout and "alpine" in base_image'
 
 - name: Regen LXC SSH
   known_hosts:
